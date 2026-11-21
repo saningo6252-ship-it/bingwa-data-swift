@@ -1,27 +1,43 @@
-name: Build APK
+name: Build MyWorld Swift APK
+
 on:
-  push:
-    branches: [ main ]
+workflow_dispatch:
+push:
+branches:
+- main
+
 jobs:
-  build:
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v4
-      - uses: subosito/flutter-action@v2
-        with:
-          flutter-version: '3.24.0'
-          channel: 'stable'
-      - run: |
-          cp pubspec.yaml /tmp/pubspec.yaml.bak
-          cp -r lib /tmp/lib.bak
-          rm -rf android
-          flutter create . --project-name bingwa_app --org com.bingwa.app
-          cp /tmp/pubspec.yaml.bak pubspec.yaml
-          rm -rf lib
-          cp -r /tmp/lib.bak lib
-      - run: flutter pub get
-      - run: flutter build apk --release
-      - uses: actions/upload-artifact@v4
-        with:
-          name: bingwa-apk
-          path: build/app/outputs/flutter-apk/app-release.apk
+build:
+name: Build Android APK
+runs-on: ubuntu-latest
+
+steps:
+  - name: Checkout project
+    uses: actions/checkout@v4
+
+  - name: Setup Java
+    uses: actions/setup-java@v4
+    with:
+      distribution: temurin
+      java-version: '17'
+
+  - name: Setup Flutter
+    uses: subosito/flutter-action@v2
+    with:
+      channel: stable
+      cache: true
+
+  - name: Install dependencies
+    run: flutter pub get
+
+  - name: Check Flutter code
+    run: flutter analyze
+
+  - name: Build APK
+    run: flutter build apk --release
+
+  - name: Upload APK
+    uses: actions/upload-artifact@v4
+    with:
+      name: MyWorld-Swift-APK
+      path: build/app/outputs/flutter-apk/app-release.apk
